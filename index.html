@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Criar Card — Trello</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { min-height: 100vh; background: #0c0c0e; display: flex; align-items: center; justify-content: center; font-family: 'DM Sans', sans-serif; padding: 24px; }
+    .wrap { width: 100%; max-width: 480px; }
+    .badge { display: inline-flex; align-items: center; gap: 7px; background: rgba(0,196,120,0.08); border: 1px solid rgba(0,196,120,0.18); border-radius: 100px; padding: 5px 12px 5px 8px; margin-bottom: 20px; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: #00c478; box-shadow: 0 0 8px #00c478; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .badge-text { font-size: 11px; font-weight: 500; color: #00c478; letter-spacing: 0.06em; text-transform: uppercase; }
+    h1 { font-size: 30px; font-weight: 600; color: #f2f2f2; line-height: 1.15; margin-bottom: 8px; letter-spacing: -0.02em; }
+    .sub { font-size: 14px; color: #3d3d42; margin-bottom: 36px; }
+    .card { background: #111114; border: 1px solid #1e1e24; border-radius: 18px; padding: 32px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #3a3a42; margin-bottom: 8px; }
+    input, textarea { width: 100%; background: #0c0c0e; border: 1px solid #1e1e24; border-radius: 10px; color: #e8e8ea; font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 13px 15px; outline: none; transition: border-color 0.2s, box-shadow 0.2s; line-height: 1.5; }
+    input::placeholder, textarea::placeholder { color: #2a2a32; }
+    input:focus, textarea:focus { border-color: rgba(0,196,120,0.4); box-shadow: 0 0 0 3px rgba(0,196,120,0.06); }
+    textarea { resize: vertical; min-height: 130px; }
+    .divider { height: 1px; background: #1a1a20; margin: 24px 0; }
+    .btn { width: 100%; padding: 14px; border-radius: 11px; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: #00c478; color: #000; }
+    .btn:hover:not(:disabled) { background: #00d988; box-shadow: 0 6px 28px rgba(0,196,120,0.28); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .feedback { margin-top: 14px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; text-align: center; display: none; }
+    .success { background: rgba(0,196,120,0.08); border: 1px solid rgba(0,196,120,0.16); color: #00c478; display: block; }
+    .error { background: rgba(255,70,70,0.08); border: 1px solid rgba(255,70,70,0.16); color: #ff6060; display: block; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="badge"><div class="badge-dot"></div><span class="badge-text">Conectado ao Trello</span></div>
+    <h1>Criar card<br/>no Trello</h1>
+    <p class="sub">Preencha e envie direto para a sua coluna.</p>
+    <div class="card">
+      <div class="field">
+        <label>Título</label>
+        <input type="text" id="title" placeholder="Ex: Post carrossel — Dra. Thais Borges" />
+      </div>
+      <div class="field">
+        <label>Descrição</label>
+        <textarea id="description" placeholder="Contexto, referências, instruções para o card..."></textarea>
+      </div>
+      <div class="divider"></div>
+      <button class="btn" id="btn" onclick="send()">⬡ Criar card no Trello</button>
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+  <script>
+    async function send() {
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      if (!title) return;
+      const btn = document.getElementById("btn");
+      const feedback = document.getElementById("feedback");
+      btn.disabled = true;
+      btn.textContent = "Enviando...";
+      feedback.className = "feedback";
+      try {
+        const res = await fetch("https://henriquehampe.app.n8n.cloud/webhook/78cf5e2b-f2b0-4aa7-abf7-1dcbc98dbb4e", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description })
+        });
+        if (res.ok) {
+          feedback.className = "feedback success";
+          feedback.textContent = "✓ Card criado com sucesso no Trello!";
+          document.getElementById("title").value = "";
+          document.getElementById("description").value = "";
+        } else {
+          throw new Error();
+        }
+      } catch {
+        feedback.className = "feedback error";
+        feedback.textContent = "✗ Erro ao enviar. Verifique o workflow no n8n.";
+      }
+      btn.disabled = false;
+      btn.textContent = "⬡ Criar card no Trello";
+    }
+  </script>
+</body>
+</html>

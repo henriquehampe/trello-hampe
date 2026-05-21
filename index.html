@@ -35,7 +35,7 @@
   <div class="wrap">
     <div class="badge"><div class="badge-dot"></div><span class="badge-text">Conectado ao Trello</span></div>
     <h1>Criar card<br/>no Trello</h1>
-    <p class="sub">Preencha e envie direto para a sua coluna.</p>
+    <p class="sub">Preencha e envie direto para a coluna banco.</p>
     <div class="card">
       <div class="field">
         <label>Título</label>
@@ -51,6 +51,10 @@
     </div>
   </div>
   <script>
+    const KEY = "6c96724e67175a7481afffe57bfaaf66";
+    const TOKEN = "ATTA56387f5d584b5adaea462d2ac858d627653bb80f3b4abd70df80469b33f2db0f05BE7D19";
+    const LIST_ID = "6a0e4432909c07cf79806b3c";
+
     async function send() {
       const title = document.getElementById("title").value.trim();
       const description = document.getElementById("description").value.trim();
@@ -58,15 +62,13 @@
       const btn = document.getElementById("btn");
       const feedback = document.getElementById("feedback");
       btn.disabled = true;
-      btn.textContent = "Enviando...";
+      btn.textContent = "Criando...";
       feedback.className = "feedback";
       try {
-        const res = await fetch("https://henriquehampe.app.n8n.cloud/webhook/78cf5e2b-f2b0-4aa7-abf7-1dcbc98dbb4e", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, description })
-        });
-        if (res.ok) {
+        const url = `https://api.trello.com/1/cards?key=${KEY}&token=${TOKEN}&idList=${LIST_ID}&name=${encodeURIComponent(title)}&desc=${encodeURIComponent(description)}`;
+        const res = await fetch(url, { method: "POST" });
+        const data = await res.json();
+        if (data.id) {
           feedback.className = "feedback success";
           feedback.textContent = "✓ Card criado com sucesso no Trello!";
           document.getElementById("title").value = "";
@@ -76,11 +78,15 @@
         }
       } catch {
         feedback.className = "feedback error";
-        feedback.textContent = "✗ Erro ao enviar. Verifique o workflow no n8n.";
+        feedback.textContent = "✗ Erro ao criar o card.";
       }
       btn.disabled = false;
       btn.textContent = "⬡ Criar card no Trello";
     }
+
+    document.getElementById("title").addEventListener("keydown", e => {
+      if (e.key === "Enter") send();
+    });
   </script>
 </body>
 </html>
